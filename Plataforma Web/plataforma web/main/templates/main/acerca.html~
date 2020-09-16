@@ -1,0 +1,17 @@
+{% extends 'main/top.html' %}
+
+{% block content %}
+<div class="servicios">
+        <h1>Acerca de nosotros</h1>
+
+        <div class="texto">
+            <h2>Sobre nosotros</h2>
+            <p>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Autem repellat quidem earum placeat itaque inventore blanditiis tempore numquam facere praesentium.
+                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Eum alias exercitationem aliquam quidem eos suscipit iusto dolore sequi beatae consectetur ipsam corporis perspiciatis enim, esse eveniet voluptatem? Quidem, placeat nisi!
+            </p>
+            <h2>Metas</h2>
+            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Atque praesentium quaerat velit! Ipsa quod recusandae error quia, ad sed dolor illo, eligendi quasi voluptas rem corporis repellat eius dolore? Lorem ipsum dolor sit amet consectetur adipisicing elit. Mollitia illum ducimus numquam, obcaecati animi quia cum reiciendis atque qui impedit..</p>
+        </div>
+
+    </div>
+{% endblock %}

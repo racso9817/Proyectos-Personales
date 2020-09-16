@@ -1,0 +1,30 @@
+{% extends "main/top.html" %}
+{% block content %}
+{% load static %}
+<div class="izquierda" style="background-image: url({% static 'rsc/detalles.jpg' %});">
+                <div class="foto">
+                    <img src="{% static 'rsc/adult-1260380_1280.jpg' %}" alt="">
+                </div>
+                <div class="texto">
+                    <h3>{{ nombre }}</h3>
+                    <h4>{{ direccion }}</h4>
+                    <h4>{{ sucursal }}</h4>
+                </div>
+            </div>
+    
+    <div class="derecha">
+        <div class="text">
+            <h2>Informacion</h2>
+            <ul>
+                <li>Ciudad</li>
+                <li>{{ direccion }}</li>
+                <li>Texto relleno</li>
+                <li>Texto relleno</li>
+            </ul>
+        </div>
+		<a href="{% url 'aggMeta' %}" >
+    	<input type="submit" value="Editar">
+    	</a>
+    </div>
+
+{% endblock content %}

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>GANBARU</title>
+  {% load static %}
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <link rel="stylesheet" type="text/css" href="{% static 'css\estilo.css' %}" media="screen">
+</head>
+
+<body>
+    <header>
+        <div class="logo">
+        {% load static %}
+            <img src="{%static 'rsc/pasted-svg-442993x420.svg' %}" alt="">
+        </div>
+        <nav>
+			<ul>        
+        {% if user.is_authenticated %}
+            {% if user.is_cliente %}
+            	<li><a href="{% url 'dashboard' %}"><span>Dashboard</span></a></li>
+          {% endif%}
+          <li><a href="{% url 'puntos' %}"><span>Puntos</span></a></li>
+        	{% else %}
+          <li><a href="{% url 'mainpage' %}"><span>Inicio</span></a></li>
+          {% endif %}
+           <li><a href="{% url 'servicios' %}"><span>Servicios</span></a></li>
+           <li><a href="{% url 'acerca' %}"><span>Acerca de Nosotros</span></a></li>
+           {% if user.is_authenticated %}
+          <li><a href="{% url 'profile' %}"><span>Perfil</span></a></li>
+          <li><a href="{% url 'salir' %}"><span>Cerrar sesión</span></a></li>
+        {% else %}
+          <li><a href="{% url 'entrar' %}"><span>Acceder</span></a></li>
+        {% endif %}
+            </ul>
+        </nav>
+    </header>
+<div class="contenedor">
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{{message.tags}}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+      {% block content %}
+      {% endblock %}
+    </div>
+
+    <footer id="footer">
+        <p><strong>GANBARU</strong> Fidelizamos Tu Marca</p>
+    </footer>
+    
+</div>
+</body>
+</html>

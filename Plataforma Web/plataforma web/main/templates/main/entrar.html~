@@ -1,0 +1,18 @@
+{% extends 'main/top.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="fondo-form">
+  {% load static %}
+  <img src="{% static 'rsc/lock.jpg' %}" style="height: 600px; width: 100%;">
+  <div class="login-box">
+    <h1>Inicio de sesión</h1>
+    <form method="POST">
+      {% csrf_token %}
+      {{ form|crispy }}
+      <input type="submit" value="Iniciar sesión">
+    </form>
+    <a href="#">¿Perdió su contraseña?</a><br>
+    <a href="{% url 'registro' %}">¿No tiene una cuenta?</a>
+  </div>
+</div>
+{% endblock %}

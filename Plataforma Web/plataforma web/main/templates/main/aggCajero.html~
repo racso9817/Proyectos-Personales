@@ -1,0 +1,62 @@
+{% extends "main/top.html" %}
+{% block content %}
+<section class="form-cajero">
+    <div class="contenedor">
+        <h2>Agregar Cajero</h2>
+
+
+        <div class="formulario-cajero">
+            <form method="POST" action="">
+                {% csrf_token %}
+                <div class="inpts">
+                    <label for="cnombre">Nombre:</label>
+                    <input type="text" id="cnombre" name="cnombre">
+                </div>
+                <div class="inpts">
+                    <label for="capellido">Apellido:</label>
+                    <input type="text" name="capellido" id="capellido">
+                </div>
+                <div class="inpts">
+                    <label for="ccedula">Cedula:</label>
+                    <input type="text" name="ccedula" id="ccedula">
+                </div>
+                <div class="inpts">
+                    <label for="ctelefono">Telefono</label>
+                    <input type="tel" name="ctelefono" id="ctelefono">
+                </div>
+                <div class="inpts">
+                    <label for="ccorreo">Correo: </label>
+                    <input type="email" name="ccorreo" id="ccorreo">
+                </div>
+                <div class="inpts">
+                    <label for="cdireccion">Dirección: </label>
+                    <input type="text" name="cdireccion" id="cdireccion">
+                </div>
+                <div class="inpts">
+                    <label for="cfdn">Fecha de nacimiento: </label>
+                    <input type="date" name="cfdn" id="cfdn">
+                </div>
+                <div class="inpts">
+                    <label for="cgenero">Genero: </label>
+                    <select name = "cgenero" id="cgenero">
+                        <option value = "Hombre" selected>Hombre</option>
+                        <option value = "Mujer">Mujer</option>
+                        <option value = "Otro/Prefiero no decir">Otro/Prefiero no decir</option>
+                     </select>
+                </div>
+                <div class="inpts">
+                    <label for="csucursal">Sucursal: </label>
+                    <select name = "csucursal" id="csucursal">
+								{% for s in sucursal %}                        
+                        <option value = "sucursal" selected>s</option>
+                        {% endfor %}
+                     </select>
+                </div>
+
+                <input type="submit" value="Guardar">
+            </form>
+            <div class="clearfix"></div>
+        </div>
+    </div>
+</section>
+{% endblock %}

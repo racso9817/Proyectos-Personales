@@ -1,0 +1,31 @@
+{% extends "main/top.html" %}
+{% block content %}
+
+<section class="nuestro-equipo" id="nuestroEquipo">
+    <div class="contenedor">
+        <div class="equipo">
+            {% for s in sucursales %}
+            <div class="persona-equipo">
+                <div class="foto">
+                    <img src="{{ s.imagenTkn.url }}">
+                </div>
+                <div class="texto">
+                    <a href="{% url 'sucursal-details' s.id_local %}">
+            			<greylink>{{ s }}</greylink>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="botones">
+            <div class="agregar-cajero">
+                <a href="{% url 'aggSucursal' %}">
+                    <input type="submit" value="Agregar sucursal">
+                </a>
+            </div>
+        </div>
+    </div>
+
+
+</section>
+{% endblock content %}

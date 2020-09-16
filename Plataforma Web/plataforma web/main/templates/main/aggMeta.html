@@ -1,0 +1,40 @@
+{% extends "main/top.html" %}
+{% block content %}
+<section class="form-cajero">
+        <div class="contenedor">
+    <h2>Agregar Meta</h2>
+        <div class="formulario-cajero">
+        <form action="">
+            <div class="inpts">
+            <label for="cnombre">Nombre:</label>
+            <input type="text" id="cnombre" name="cnombre">
+        </div>
+        <div class="inpts">
+            <label for="capellido">Apellido:</label>
+            <input type="text" name="capellido" id="capellido">
+        </div>
+        <div class="inpts">
+            <label for="ccedula">Cedula:</label>
+            <input type="number" name="ccedula" id="ccedula">
+        </div>
+        <div class="inpts">
+            <label for="ctelefono">Telefono</label>
+            <input type="tel" name="ctelefono" id="ctelefono">
+        </div>
+        <div class="inpts">
+            <label for="ccorreo">Correo: </label>
+            <input type="email" name="ccorreo" id="ccorreo">
+        </div>
+        <div class="inpts">
+            <label for="cedad">Edad: </label>
+            <input type="number" name="cedad" id="cedad">
+        </div>
+ 
+            <input type="submit" value="Guardar">
+        </form>
+        <div class="clearfix"></div>
+    </div>
+    </div>
+</section>
+
+{% endblock content %}

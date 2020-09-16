@@ -1,0 +1,37 @@
+{% extends "main/top.html" %}
+{% block content %}
+{% load static %}
+<div class="izquierda">
+			{% load static %}
+                <div class="foto">
+                    <img src="{%static 'rsc/adult-1260380_1280.jpg' %}" alt="">
+                </div>
+                <div class="texto">
+                    <h3>Nombre del empleado</h3>
+                    <h4>Rol que desempeña</h4>
+                </div>
+            </div>
+    
+    <div class="derecha">
+        <div class="text">
+            <h2>Puntos del usuario</h2>
+            <ul>
+                <li>Nombre Completo</li>
+                <li>Cedula</li>
+                <li>Telefono</li>
+                <li>Edad</li>
+            </ul>
+        </div>
+
+    {% for s in tokens %}
+        <div class="text">
+				{{ tokens.s }}            
+				<ul>            
+            <h2>
+            <li><a href="{% url 'puntos-details' s %}"><greylink>{{ tokens|get_nombre:s }}</greylink><h4>{{ tokens|get_total:s }}</h4></a></li>
+        		</h2>
+            </ul>
+        </div>
+    {% endfor %}
+    </div>
+{% endblock content %}

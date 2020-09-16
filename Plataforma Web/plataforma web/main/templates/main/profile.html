@@ -1,0 +1,23 @@
+{% extends 'main/top.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="registro">
+  <div class="content-section">
+    <div class="media">
+      <div class="media-body">
+        <h2 class="account-heading">{{ user.username }}</h2>
+        <p class="text-secondary">{{ user.email }}</p>
+        <img class="rounded-circle account-img" src="{{ user.profile_pic.url }}">
+      </div>
+    </div>
+  </div>
+  <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ u_form|crispy }}
+    {% if c_form != None %}
+      {{ c_form|crispy }}
+    {% endif %}
+    <input type="submit" value="Actualizar">
+  </form>
+</div>
+{% endblock %}

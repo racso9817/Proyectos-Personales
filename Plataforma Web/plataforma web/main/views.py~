@@ -1,0 +1,386 @@
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import Group
+from django.shortcuts import redirect, render
+from django.views.generic import ListView, DetailView, CreateView
+from django.template.defaulttags import register
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+
+from .forms import *
+from .models import *
+
+# Para hacer queries: <model>.<manager>.<filter/exclude/exact/get>(<field>[__<relation field>__...]='queryValue')
+# Create your views here.
+# Revisar si es cliente: CustomUser.objects.get(username=request.user.username).is_cliente <- eso devuelve un boolean
+def mainpage(request):
+    if request.user.is_authenticated: # Quitar esto una vez que se hagan esas vistas
+        if CustomUser.objects.get(username=request.user.username).is_cliente:
+            return redirect('dashboard')
+        else:
+            return redirect('puntos')
+    return render(request, 'main/inicio.html')
+
+
+@login_required
+def dashboard(request):
+    if CustomUser.objects.get(username=request.user.username).is_cliente:
+        return render(request, 'main/ui_cliente.html')
+    else:
+        return redirect('puntos')
+
+
+@login_required
+def aggCajero(request):
+    if CustomUser.objects.get(username=request.user.username).is_cliente:
+        if request.method == "GET":
+            context = {
+                "sucursales": Sucursal.objects.filter(propietario__cuser=request.user)
+            }
+            return render(request, 'main/aggCajero.html', context)
+        elif request.method == "POST":
+            data = request.POST
+            valid_username = data["cnombre"][0] + data["capellido"]
+            first_name = data["cnombre"]
+            last_name = data["capellido"]
+            
+            # CHEQUEAR USERNAME
+            is_valid_username = CustomUser.objects.filter(username=valid_username)
+            from random import seed
+            from random import randint
+            seed(923)
+            adder = randint(1, 10000)
+            cont = 0
+            valid_username_otro = valid_username
+            while not is_valid_username and cont < 1000:
+                valid_username_otro = valid_username + str(adder)
+                is_valid_username = CustomUser.objects.filter(username=valid_username_otro)
+                cont += 1
+            valid_username = valid_username_otro
+            if not is_valid_username:
+                valid_username = valid_username + str(randint(100,1001))
+            #########################################
+
+            is_valid_email = checkCorreo(data["ccorreo"])
+            is_valid_ced = checkCedula(data["ccedula"])
+            is_valid_tel = checkTelefono(data["ctelefono"])
+            is_valid_fdn = checkFecha(data["cfdn"])
+
+            is_valid_data = is_valid_ced and is_valid_email and is_valid_fdn and is_valid_tel
+            if is_valid_data:
+                try:
+                    print("entro al try")
+                    if len(Genero.objects.filter(descripcion=data["cgenero"])) == 0:
+                        print("No existe el genero")
+                        Genero.objects.create(descripcion=data["cgenero"])
+                        print("Se crea el genero")
+                    CustomUser.objects._create_user(username=valid_username, first_name=first_name, last_name=last_name, email=data["ccorreo"], genero=Genero.objects.get(descripcion=data["cgenero"]), direccion=data["cdireccion"], cedula_ruc=data["ccedula"], is_cliente=True)
+                    print("Se crea el user")
+                    if len(RolesClientes.objects.filter(descripcion="Cajero")) == 0:
+                        print("No existe el rol")
+                        RolesClientes.objects.create(descripcion="Cajero")
+                        print("Se crea el rol")
+                    Cliente.objects.create(cuser=CustomUser.objects.get(username=valid_username), rol=RolesClientes.objects.get(descripcion="Cajero"))
+                    print("Se crea el cliente")
+                    SucursalCliente.object.create(sucursal=Sucursal.objects.get(id_local=int(data['csucursal'].split(" ")[0])), cliente=Cliente.objects.get(cuser__username=valid_username))
+                    print("Se crea el cajero")
+                except Exception:
+                    print("dentro del except")
+                    import traceback
+                    traceback.print_exc()
+                    messages.warning(request, "Datos invalidos")
+                    context = {
+                        "sucursales": Sucursal.objects.filter(propietario__cuser=request.user)
+                    }
+                    return render(request, 'main/aggCajero.html', context)
+        return redirect('dashboard')
+    else:
+        return redirect('puntos')
+
+
+@login_required
+def puntos(request):
+    print(Token.objects.filter(usuario__cuser__username=request.user.username))
+    context = {
+        'tokens': Token.objects.filter(usuario__cuser__username=request.user.username)
+    }
+    return render(request, 'main/ver_puntos.html', context)
+
+@login_required
+def estadistica(request):
+	return render(request, 'main/estadistica_cliente.html')
+	
+@login_required
+def aggMeta(request):
+	return render(request, 'main/aggMeta.html')
+
+@login_required
+def campana(request):
+	return render(request, 'main/ver_campaña.html')
+
+class PuntosListView(LoginRequiredMixin, ListView):
+    model = Token
+    template_name = 'main/ver_puntos.html' # <app>/<model>_<viewtype>.html es el nombre que busca por default
+    context_object_name = 'tokens'
+    ordering = ['-fecha']
+
+    def get_queryset(self):
+        # Dict de los tokens del usuario
+        user_tokens = Token.objects.filter(usuario__cuser=self.request.user)
+        # Dict de los tokens agrupados
+        tokens = dict()
+        for t in user_tokens:
+            # id de la sucursal donde se emitio el token
+            sucursal = t.cajero.sucursal.id_local
+            if sucursal in tokens:
+                tokens[sucursal]['tks'].append(t)
+                tokens[sucursal]['total'] += 1
+            else:
+                tokens[sucursal] = {
+                    'tks' : [t,],
+                    'nombre' : t.cajero.sucursal.nombre,
+                    'total' : 1
+                }
+        return tokens
+
+
+class PuntosDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+    model = Token
+    template_name = 'main/tokens_sucursal.html'
+
+    def test_func(self):
+        obj = self.get_object()
+        return self.request.user == obj.usuario.cuser
+
+
+
+    def get(self, request, *args, **kwargs):
+
+        sucursal = Sucursal.objects.get(id_local = kwargs['pk'])
+        total_tokens = 0
+        tokens = Token.objects.filter(usuario__cuser=self.request.user)
+
+        for t in tokens:
+            if t.cajero.sucursal == sucursal:
+                total_tokens += 1
+
+        context = {
+            'sucursal_name' : sucursal.nombre,
+            'total' : total_tokens
+        }
+        return render(request, self.template_name, context)
+
+# Sucursales
+class SucursalCreationView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    model = Sucursal
+    template_name = 'main/sucursal_crear.html'
+    form_class = SucursalCreationForm
+
+    def get_initial(self, *args, **kwargs):
+        initial = super(SucursalCreationView, self).get_initial()
+        initial = initial.copy()
+        initial['propietario'] = Cliente.objects.get(cuser = self.request.user)
+        return initial
+
+    def test_func(self):
+        return self.request.user.is_cliente
+
+class SucursalesListView(LoginRequiredMixin, ListView):
+    model = Sucursal
+    template_name = "main/ver_sucursales.html"
+
+    context_object_name = 'sucursales'
+    ordering = ['-nombre']
+
+    def get_queryset(self):
+        sucursales = Sucursal.objects.filter(propietario__cuser=self.request.user)
+        return sucursales
+
+
+class SucursalesDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+    model = Sucursal
+    template_name = 'main/sucursal_detail.html'
+
+    def test_func(self):
+        obj = self.get_object()
+        return self.request.user == obj.propietario.cuser
+
+    def get(self, request, *args, **kwargs):
+        sucursal = Sucursal.objects.get(id_local = kwargs['pk'])
+        context = {"nombre" : sucursal.nombre,
+                    "direccion" : sucursal.direccion,
+                    "correo" : sucursal.correo,
+                    "imagenTkn" : sucursal.imagenTkn}
+        return render(request, self.template_name, context)
+
+# Cajeros
+class CajerosListView(LoginRequiredMixin, ListView):
+    model = SucursalCliente
+    template_name = "main/ver_cajeros.html"
+
+    context_object_name = 'cajeros'
+    ordering = ['-sucursal']
+
+    def get_queryset(self):
+        cajeros_unsorted = SucursalCliente.objects.filter(sucursal__propietario__cuser = self.request.user, activo = True)
+
+        cajeros = dict()
+
+        for c in cajeros_unsorted:
+            cajeros[c] = {
+                'nombre' : "{}: {} {}".format(c.sucursal.nombre, c.cliente.cuser.first_name, c.cliente.cuser.last_name)
+            }
+
+        return cajeros
+
+
+class CajerosDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+    model = SucursalCliente
+    template_name = 'main/cajero_detail.html'
+
+    def test_func(self):
+        return self.get_object().sucursal.propietario.cuser == self.request.user
+
+    def get(self, request, *args, **kwargs):
+        cajero = SucursalCliente.objects.get(id_cajero = kwargs['pk'])
+        context = {"nombre" : "{} {}".format(cajero.cliente.cuser.last_name, cajero.cliente.cuser.first_name),
+                    "correo" : cajero.cliente.cuser.email,
+                    "sucursal" : cajero.sucursal.nombre}
+        return render(request, self.template_name, context)
+
+
+def acerca(request):
+    return render(request, 'main/acerca.html')
+
+
+def servicios(request):
+    return render(request, 'main/servicios.html')
+
+
+def entrar(request):
+    return render(request, 'main/entrar.html')
+
+
+@login_required
+def profile(request):
+    if request.method == 'POST':
+        user = CustomUser.objects.get(username=request.user.username)
+        u_form = CustomUserUpdateForm(request.POST, request.FILES, instance=user)
+        c_form = ClienteUpdateForm(request.POST, instance=Cliente.objects.get(cuser=user))
+        if u_form.is_valid():
+            print("u_form es valida")
+            u_form.save()
+            if len(TelefonosUsusarios.objects.filter(usuario=UsuarioFinal.objects.get(cuser=request.user))) > 0:
+                telefono = TelefonosUsusarios.objects.get(usuario=UsuarioFinal.objects.get(cuser=request.user))
+                telefono.numero = u_form.cleaned_data.get("telefono")
+                telefono.save()
+            else:
+                telefono = TelefonosUsusarios(numero= u_form.cleaned_data.get("telefono"), usuario=UsuarioFinal.objects.get(cuser=request.user), tipo_telefono=TipoTelefono.objects.get(cod=1))
+                telefono.save()
+            messages.success(request, f"Perfil actualizado")
+            print("u_form es saved")
+        if c_form != None and c_form.is_valid():
+            print("u_form es valida")
+            c_form.save()
+            if len(TelefonosClientes.objects.filter(propietario=Cliente.objects.get(cuser=request.user))) > 0:
+                telefono = TelefonosClientes.objects.get(propietario=Cliente.objects.get(cuser=request.user))
+                telefono.numero = u_form.cleaned_data.get("telefono")
+                telefono.save()
+            else:
+                telefono = TelefonosClientes(numero= u_form.cleaned_data.get("telefono"), propietario=Cliente.objects.get(cuser=request.user), tipo_telefono=TipoTelefono.objects.get(cod=1))
+                telefono.save()
+            print("u_form es saved")
+        return redirect('profile')
+    else:
+        u_form = CustomUserUpdateForm(instance=CustomUser.objects.get(username=request.user.username), 
+                                        initial={'telefono' : TelefonosUsusarios.objects.get(usuario=UsuarioFinal.objects.get(cuser=request.user)).numero})
+        c_form = None
+        if CustomUser.objects.get(username=request.user.username).is_cliente:
+            c_form = ClienteUpdateForm(instance=Cliente.objects.get(cuser=CustomUser.objects.get(username=request.user.username)))
+
+    context = {'u_form' : u_form, 'c_form' : c_form}
+
+    return render(request, 'main/profile.html', context)
+
+
+def registro(request):
+    if request.method == 'POST':
+        user = CustomUserCreationForm(request.POST)
+        if user.is_valid():
+            user_username = user.cleaned_data.get('username')
+            is_cliente = user.cleaned_data.get('is_cliente')
+            if is_cliente:
+                user.save() # crear una forma de verificar pago # por borrar
+                # add_user_to_group(user_username, 'cliente') # por hacer en la otra forma # por borrar
+                messages.success(request, f'{user_username}, cuenta creada, para acceder a la funcionalidad base debe agregar una forma de pago.')
+
+                # Redireccionar al metodo de pago y a agreagar los otros detalles
+                # cliente nuevo es una llave de diccionario que contiene otro diccionario con los datos iniciales del cliente
+                # TODO: Crear una form para crear clientes en la base de datos, que recibas los datos de cliente_nuevo
+                return render(request, 'main/forma_pago.html', {'old_form': user,'cliente_nuevo': user.cleaned_data}) # TODO
+
+                # return redirect('entrar') #Por borrar
+            else:
+                user.save()
+                add_user_to_group(user_username, 'usuario_final')
+                messages.success(request, f'{user_username} se creó su cuenta, ya puede iniciar sesión!'.capitalize())
+                return redirect('entrar')
+    else:
+        user = CustomUserCreationForm(request.POST)
+    return render(request, 'main/registro.html', {'form' : user})
+
+def add_user_to_group(usuario, group):
+    g = Group.objects.get(name=group)
+    user_account = CustomUser.objects.get(username=usuario)
+    g.user_set.add(user_account)
+
+
+@register.filter
+def get_nombre(dictionary, key):
+    try:
+        return dictionary.get(key).get("nombre")
+    except:
+        return ""
+
+
+@register.filter
+def get_total(dictionary, key):
+    try:
+        return dictionary.get(key).get("total")
+    except:
+        return ""
+
+def get_sucursal(dictionary, key):
+    try:
+        return dictionary.get(key).get("sucursal")
+    except:
+        return ""
+
+def checkCorreo(data):
+    import re
+    return re.match('^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$', data)
+
+
+def checkCedula(data):
+    return len(data) == 10 and data.isdigit()
+
+
+def checkTelefono(data):
+    import re
+    return re.match('^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$', data)
+
+
+def checkFecha(data):
+    import datetime
+    now = datetime.datetime.now()
+    year, month, day = data.split("-")
+    try:
+        is_valid = int(month) in list(range(1, 13)) and ([int(day) in list(range(1, 32)), int(day) in list(range(1, 30)) ][month == 2])
+        return int(year) <= (now.year - 15) and is_valid
+    except:
+        return False
+
+
+#TODO: Crear una vista para editar los detalles del perfil, definir cuales se pueden cambiar y cuales no
+#TODO: email verification
+#TODO: Alterar el html de top para que solo salga el acerca y esas cosas si es que no se ha autenticado el usuario o es un usuario final

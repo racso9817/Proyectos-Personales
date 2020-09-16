@@ -1,0 +1,29 @@
+{% extends 'main/top.html' %}
+
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<div id="dashboard">
+    <div class="clientes" style="display: inline-block;">
+      {% load static %}
+      <a href="{% url 'cajeros' %}"><img src="{% static 'rsc/Gambaru_Mesa-de-trabajo-1_04.png' %}" style="width: 200px; height: 200px;">
+      <p>Personal</p></a>
+    </div>
+    <div class="estadistica" style="display: inline-block;">
+      {% load static %}
+      <a href="{% url 'estadistica' %}"><img src="{% static 'rsc/Gambaru_Mesa-de-trabajo-1_43.png' %}" style="width: 200px; height: 200px;">
+      <p>Estadistica</p></a>
+    </div>
+    <div class="campana" style="display: inline-block;">
+      {% load static %}
+      <a href="{% url 'mainpage' %}"><img src="{% static 'rsc/Gambaru_Mesa-de-trabajo-1_55.png' %}" style="width: 200px; height: 200px;">
+      <p>Campañas</p></a>
+    </div>
+    <div class="config" style="display: inline-block;">
+      {% load static %}
+      <a href="{% url 'sucursales' %}"><img src="{% static 'rsc/Gambaru_Mesa-de-trabajo-1_79.png' %}" style="width: 200px; height: 200px;">
+      <p>Sucursales</p></a>
+    </div>
+</div>
+{% endblock %}

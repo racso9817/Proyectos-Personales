@@ -1,0 +1,11 @@
+{% extends 'main/top.html' %}
+{% block content %}
+<div class="contenedor">
+    <section class="principal">
+        <div class="anuncio">
+            <img src="{%static 'rsc/15850.jpg' %}" alt="">
+        </div>
+    </section>
+    </div>
+
+{% endblock %}

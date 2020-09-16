@@ -1,0 +1,15 @@
+{% extends 'main/top.html' %}
+
+{% load crispy_forms_tags %}
+
+{% block content %}
+{% load static %}
+<div class="registro">
+    <h1>Crear Sucursal</h1>
+    <form method="POST">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <input type="submit" value="Crear">
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "main/top.html" %}
+{% block content %}
+
+<section class="nuestro-equipo" id="nuestroEquipo">
+    <div class="contenedor">
+        <div class="equipo">
+            {% for c in cajeros %}
+            <div class="persona-equipo">
+                <div class="foto">
+                    <!--IMAGEN-->
+                </div>
+                <div class="texto">
+                    <a href="{% url 'cajero-details' c.id_cajero %}">
+                        <greylink>{{ cajeros|get_nombre:c }}</greylink>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="botones">
+            <div class="agregar-cajero">
+                <a href="{% url 'aggCajero' %}">
+                    <input type="submit" value="Agregar cajero">
+                </a>
+            </div>
+        </div>
+    </div>
+
+
+</section>
+{% endblock content %}

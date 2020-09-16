@@ -1,0 +1,16 @@
+{% extends 'main/top.html' %}
+
+{% load crispy_forms_tags %}
+
+{% block content %}
+{% load static %}
+<div class="registro">
+    <h1>Registro</h1>
+    <form method="POST">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <input type="submit" value="Registrarse">
+    </form>
+    <a href="{% url 'entrar' %}">¿Ya tiene una cuenta?</a>
+</div>
+{% endblock %}
