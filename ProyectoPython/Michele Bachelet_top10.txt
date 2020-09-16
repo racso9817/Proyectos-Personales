@@ -1,0 +1,10 @@
+que 10
+no 9
+de 9
+hay 8
+y 8
+un 7
+todos 7
+a 7
+país 6
+tanto 5

@@ -1,0 +1,10 @@
+que 10
+a 10
+y 10
+de 10
+no 9
+un 8
+tanto 7
+del 7
+hay 6
+al 6
